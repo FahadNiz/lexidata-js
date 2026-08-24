@@ -1,0 +1,36 @@
+{
+  "name": "lexidata",
+  "version": "1.0.0",
+  "description": "A lightweight JavaScript client for the Lexidata English lexical data API.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\""
+  },
+  "keywords": [
+    "dictionary",
+    "dictionary-api",
+    "english",
+    "lexical-data",
+    "wordnet",
+    "nlp",
+    "api",
+    "lexidata"
+  ],
+  "author": "Fahad Niz",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FahadNiz/lexidata-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FahadNiz/lexidata-js/issues"
+  },
+  "homepage": "https://lexidata.dev",
+  "engines": {
+    "node": ">=18"
+  }
+}
