@@ -1,10 +1,8 @@
 # Lexidata
 
-A lightweight JavaScript client for the [Lexidata](https://lexidata.dev) English lexical data API.
+JavaScript client for the [Lexidata](https://lexidata.dev) open lexical data API.
 
-Lexidata provides developers with access to English words, definitions, examples, pronunciations, parts of speech, WordNet senses, search, filtering, and random word generation through a simple REST API.
-
-The npm package provides a convenient JavaScript interface for interacting with the hosted Lexidata API.
+Lexidata provides open lexical data for English words, including definitions, senses, examples, pronunciations, synsets, semantic relations, search, random words, and dataset exports.
 
 ## Installation
 
@@ -14,437 +12,779 @@ npm install lexidata
 
 ## Quick Start
 
-```javascript
+```js
+const lexidata = require("lexidata");
+
+const result = await lexidata.word("hello");
+
+console.log(result);
+```
+
+## Creating a Client
+
+You can create a configured Lexidata client using `createClient()`.
+
+```js
 const { createClient } = require("lexidata");
 
-const lexidata = createClient();
+const lexidata = createClient({
+    baseUrl: "https://api.lexidata.dev/api/v1"
+});
 
-const result = await lexidata.word("communicate");
+const result = await lexidata.word("hello");
 
-console.log(result.data);
+console.log(result);
 ```
 
-Example response:
-
-```json
-{
-  "word": "communicate",
-  "pronunciations": [
-    "kəˈmjuːnɪkeɪt"
-  ],
-  "senses": [
-    {
-      "partOfSpeech": "verb",
-      "synset": "00742582-v",
-      "definition": "transmit thoughts or feelings",
-      "examples": [
-        "He communicated his anxieties to the psychiatrist"
-      ]
-    }
-  ]
-}
-```
-
-## API Client
-
-Create a client using the default Lexidata API:
-
-```javascript
-const { createClient } = require("lexidata");
-
-const lexidata = createClient();
-```
-
-The client uses:
+The default API URL is:
 
 ```text
-https://api.lexidata.dev
+https://api.lexidata.dev/api/v1
 ```
-
-by default.
-
-A custom API base URL can also be supplied:
-
-```javascript
-const lexidata = createClient({
-  baseUrl: "http://localhost:3000"
-});
-```
-
-This is useful when developing against a local Lexidata API server.
-
----
 
 ## Word Lookup
 
 Look up a word and retrieve its lexical information.
 
-```javascript
-const result = await lexidata.word("communicate");
+```js
+const result = await lexidata.word("language");
 
-console.log(result.data);
+console.log(result);
 ```
 
-The returned data may contain:
+The response can contain information such as:
 
 - Word
+- Part of speech
 - Pronunciations
-- Parts of speech
+- Senses
+- Synsets
 - Definitions
 - Examples
-- WordNet synset identifiers
-- Multiple senses
-
-Word lookup is case-insensitive:
-
-```javascript
-const result = await lexidata.word("COMMUNICATE");
-
-console.log(result.data.word);
-// communicate
-```
-
----
+- Semantic relations
 
 ## Search
 
-Search the Lexidata vocabulary using different matching modes and filters.
+Search the Lexidata vocabulary.
 
-```javascript
+```js
 const result = await lexidata.search({
-  q: "computer"
+    q: "comm",
+    match: "prefix"
 });
 
-console.log(result.data);
+console.log(result);
 ```
 
-### Exact Search
+A search query can also be supplied as a string:
 
-```javascript
-const result = await lexidata.search({
-  q: "computer",
-  match: "exact"
-});
+```js
+const result = await lexidata.search("comm");
+
+console.log(result);
 ```
-
-Example:
-
-```json
-{
-  "query": "computer",
-  "results": [
-    "computer"
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "total": 1,
-    "totalPages": 1
-  }
-}
-```
-
-### Prefix Search
-
-```javascript
-const result = await lexidata.search({
-  q: "comp",
-  match: "prefix"
-});
-```
-
-### Contains Search
-
-```javascript
-const result = await lexidata.search({
-  q: "puter",
-  match: "contains"
-});
-```
-
-### Pagination
-
-Search results can be paginated:
-
-```javascript
-const result = await lexidata.search({
-  q: "comp",
-  match: "prefix",
-  page: 2,
-  limit: 20
-});
-```
-
-### Search Filters
-
-Search supports lexical filters such as:
-
-```javascript
-const result = await lexidata.search({
-  q: "pre",
-  match: "prefix",
-  partOfSpeech: "noun",
-  minLength: 5,
-  maxLength: 10
-});
-```
-
-Available filters include:
-
-| Filter | Description |
-|---|---|
-| `partOfSpeech` | Filter by part of speech |
-| `minLength` | Minimum word length |
-| `maxLength` | Maximum word length |
-| `startsWith` | Filter by starting characters |
-| `endsWith` | Filter by ending characters |
-| `contains` | Filter by contained text |
-
----
 
 ## Random Words
 
-Generate random words from the Lexidata dataset.
+Retrieve random words from the Lexidata dataset.
 
-```javascript
+```js
 const result = await lexidata.random({
-  limit: 5
+    limit: 10
 });
 
-console.log(result.data.words);
+console.log(result);
 ```
 
-Example:
+Additional API-supported options can be passed through the options object.
 
-```json
-{
-  "words": [
-    "Allied Command Atlantic",
-    "hanuman",
-    "service book",
-    "passbook savings account",
-    "Centropus"
-  ],
-  "count": 5
-}
-```
-
-### Random Words by Part of Speech
-
-```javascript
+```js
 const result = await lexidata.random({
-  limit: 10,
-  partOfSpeech: "noun"
+    limit: 20,
+    pos: "noun"
+});
+
+console.log(result);
+```
+
+## Dataset
+
+Retrieve structured dataset records from Lexidata.
+
+```js
+const result = await lexidata.dataset({
+    limit: 100,
+    fields: "meaning",
+    startsWith: "comm"
+});
+
+console.log(result);
+```
+
+The dataset endpoint supports pagination and word filters.
+
+```js
+const result = await lexidata.dataset({
+    limit: 100,
+    page: 1,
+    startsWith: "comm",
+    pos: "noun"
+});
+
+console.log(result);
+```
+
+## Dataset Presets
+
+Lexidata provides several dataset field presets.
+
+### Basic
+
+```js
+const result = await lexidata.dataset({
+    fields: "basic"
 });
 ```
 
-### Random Word Filters
+Includes:
 
-Random word generation supports the same filtering system:
+```text
+word
+part_of_speech
+```
 
-```javascript
-const result = await lexidata.random({
-  limit: 10,
-  partOfSpeech: "verb",
-  minLength: 5,
-  maxLength: 12
+### Meaning
+
+```js
+const result = await lexidata.dataset({
+    fields: "meaning"
 });
 ```
 
-Available filters include:
+Includes:
 
-- `partOfSpeech`
-- `minLength`
-- `maxLength`
-- `startsWith`
-- `endsWith`
-- `contains`
+```text
+word
+part_of_speech
+definitions
+examples
+```
 
----
+### Linguistic
+
+```js
+const result = await lexidata.dataset({
+    fields: "linguistic"
+});
+```
+
+Includes:
+
+```text
+word
+part_of_speech
+pronunciations
+senses
+synsets
+```
+
+### All
+
+```js
+const result = await lexidata.dataset({
+    fields: "all"
+});
+```
+
+Includes all available dataset fields.
+
+## Dataset Fields
+
+Individual fields can also be requested.
+
+Available fields:
+
+```text
+word
+part_of_speech
+pronunciations
+senses
+synsets
+definitions
+examples
+relations
+```
+
+For example:
+
+```js
+const result = await lexidata.dataset({
+    fields: [
+        "word",
+        "definitions",
+        "examples"
+    ]
+});
+
+console.log(result);
+```
+
+The `word` field is always included by the API.
+
+## Semantic Relations
+
+The `relations` field contains semantic relationships between synsets.
+
+```js
+const result = await lexidata.dataset({
+    fields: [
+        "word",
+        "definitions",
+        "relations"
+    ]
+});
+
+console.log(result);
+```
+
+Relations may include types such as:
+
+```text
+hypernym
+hyponym
+domain_topic
+```
+
+The available relation types depend on the underlying lexical data.
+
+## Dataset Export
+
+Lexidata supports dataset exports in multiple formats:
+
+```text
+JSON
+JSONL
+CSV
+TXT
+```
+
+The npm client provides `lexidata.export()` for requesting these exports.
+
+### JSON
+
+```js
+const response = await lexidata.export({
+    format: "json",
+    fields: "all"
+});
+
+const data = await response.json();
+
+console.log(data);
+```
+
+### JSONL
+
+```js
+const response = await lexidata.export({
+    format: "jsonl",
+    fields: "meaning"
+});
+
+const text = await response.text();
+
+console.log(text);
+```
+
+### CSV
+
+```js
+const response = await lexidata.export({
+    format: "csv",
+    fields: "meaning"
+});
+
+const csv = await response.text();
+
+console.log(csv);
+```
+
+### TXT
+
+```js
+const response = await lexidata.export({
+    format: "txt"
+});
+
+const text = await response.text();
+
+console.log(text);
+```
+
+The returned object is a standard Fetch `Response`, allowing you to choose how you want to consume the exported data.
+
+## Export With Filters
+
+Export options can be combined with dataset filters.
+
+```js
+const response = await lexidata.export({
+    format: "csv",
+    fields: "meaning",
+    startsWith: "comm",
+    pos: "noun"
+});
+
+const csv = await response.text();
+
+console.log(csv);
+```
+
+## Export All Fields
+
+```js
+const response = await lexidata.export({
+    format: "jsonl",
+    fields: "all"
+});
+
+const data = await response.text();
+
+console.log(data);
+```
+
+## Dataset URLs
+
+You can generate a dataset URL without making an API request.
+
+```js
+const url = await lexidata.datasetUrl({
+    format: "csv",
+    fields: "all"
+});
+
+console.log(url);
+```
+
+Example output:
+
+```text
+https://api.lexidata.dev/api/v1/dataset?format=csv&fields=all
+```
+
+This is useful when you want to:
+
+- Open an export directly
+- Provide an export link to a user
+- Use the URL in another application
+- Build your own download interface
+
+## Combining Filters
+
+Dataset options can be combined.
+
+```js
+const result = await lexidata.dataset({
+    fields: "meaning",
+    pos: "noun",
+    startsWith: "comm",
+    limit: 100,
+    page: 1
+});
+
+console.log(result);
+```
+
+For example, you can request:
+
+```text
+Meaning fields
++
+Nouns
++
+Words beginning with "comm"
++
+First page
++
+100 records
+```
+
+## Arrays
+
+Options that accept repeated query parameters can be passed as arrays.
+
+```js
+const result = await lexidata.dataset({
+    fields: [
+        "word",
+        "definitions",
+        "examples"
+    ],
+    pos: [
+        "noun",
+        "verb"
+    ]
+});
+
+console.log(result);
+```
 
 ## Error Handling
 
-The client throws an error when the Lexidata API returns a non-successful HTTP status.
+Lexidata API errors are represented by `LexidataError`.
 
-```javascript
+```js
+const {
+    LexidataError
+} = require("lexidata");
+
 try {
-  const result = await lexidata.word("notarealword");
+    const result = await lexidata.word("example");
+
+    console.log(result);
 } catch (error) {
-  console.error(error.message);
-  console.error(error.status);
+    if (error instanceof LexidataError) {
+        console.error("Code:", error.code);
+        console.error("Status:", error.status);
+        console.error("Message:", error.message);
+        console.error("Details:", error.details);
+    } else {
+        throw error;
+    }
 }
 ```
 
-For example, an unknown word produces an HTTP `404` error.
+A `LexidataError` contains:
 
-The error object includes the HTTP status:
-
-```javascript
-try {
-  await lexidata.word("notarealword");
-} catch (error) {
-  console.log(error.status);
-  // 404
-}
+```text
+name
+code
+status
+details
+message
 ```
 
----
+## Custom API URL
 
-## API Methods
+You can provide a custom API base URL.
 
-The client currently provides three primary methods.
+```js
+const { createClient } = require("lexidata");
+
+const lexidata = createClient({
+    baseUrl: "https://example.com/api/v1"
+});
+```
+
+The trailing slash is automatically removed.
+
+## Custom Headers
+
+Custom HTTP headers can be provided when creating a client.
+
+```js
+const { createClient } = require("lexidata");
+
+const lexidata = createClient({
+    headers: {
+        "X-Custom-Header": "value"
+    }
+});
+```
+
+## API Key
+
+The client supports API key configuration for authenticated Lexidata endpoints.
+
+```js
+const { createClient } = require("lexidata");
+
+const lexidata = createClient({
+    apiKey: "your-api-key"
+});
+```
+
+The client sends the key using:
+
+```text
+Authorization: Bearer your-api-key
+```
+
+Authentication requirements depend on the Lexidata API endpoint being used.
+
+## Complete Example
+
+```js
+const lexidata = require("lexidata");
+
+async function main() {
+    const word = await lexidata.word("language");
+
+    console.log("WORD");
+    console.log(word);
+
+    const search = await lexidata.search({
+        q: "comm",
+        match: "prefix"
+    });
+
+    console.log("SEARCH");
+    console.log(search);
+
+    const random = await lexidata.random({
+        limit: 5
+    });
+
+    console.log("RANDOM");
+    console.log(random);
+
+    const dataset = await lexidata.dataset({
+        fields: "meaning",
+        startsWith: "comm",
+        limit: 10
+    });
+
+    console.log("DATASET");
+    console.log(dataset);
+
+    const response = await lexidata.export({
+        format: "csv",
+        fields: "meaning",
+        startsWith: "comm"
+    });
+
+    const csv = await response.text();
+
+    console.log("CSV EXPORT");
+    console.log(csv);
+}
+
+main().catch(console.error);
+```
+
+## Browser Usage
+
+The package uses the standard Fetch API.
+
+Modern browsers provide `fetch` natively.
+
+```js
+import { createClient } from "lexidata";
+
+const lexidata = createClient();
+
+const result = await lexidata.word("world");
+
+console.log(result);
+```
+
+For browser applications, make sure the Lexidata API endpoint is accessible from your application origin.
+
+## Node.js
+
+Lexidata supports modern Node.js versions with native `fetch`.
+
+Node.js:
+
+```text
+18+
+```
+
+is required.
+
+## CommonJS
+
+```js
+const lexidata = require("lexidata");
+
+const result = await lexidata.word("world");
+```
+
+## Named Imports
+
+```js
+const {
+    createClient,
+    LexidataClient,
+    LexidataError,
+    DEFAULT_BASE_URL
+} = require("lexidata");
+```
+
+## API Client Access
+
+The underlying client is also available.
+
+```js
+const {
+    createClient
+} = require("lexidata");
+
+const lexidata = createClient();
+
+console.log(lexidata.client.baseUrl);
+```
+
+## Available Methods
+
+The default client provides:
+
+```text
+word()
+search()
+random()
+dataset()
+export()
+datasetUrl()
+```
 
 ### `word(word)`
 
 Look up a word.
 
-```javascript
+```js
 await lexidata.word("hello");
 ```
 
 ### `search(options)`
 
-Search the lexical dataset.
+Search the API.
 
-```javascript
+```js
 await lexidata.search({
-  q: "comp",
-  match: "prefix",
-  limit: 20
+    q: "hello"
 });
 ```
 
 ### `random(options)`
 
-Generate random words.
+Retrieve random words.
 
-```javascript
+```js
 await lexidata.random({
-  limit: 10,
-  partOfSpeech: "noun"
+    limit: 10
 });
 ```
 
----
+### `dataset(options)`
 
-## Using the REST API Directly
+Retrieve dataset records.
+
+```js
+await lexidata.dataset({
+    fields: "meaning",
+    limit: 100
+});
+```
+
+### `export(options)`
+
+Request an export response.
+
+```js
+await lexidata.export({
+    format: "csv",
+    fields: "all"
+});
+```
+
+### `datasetUrl(options)`
+
+Generate a dataset URL.
+
+```js
+await lexidata.datasetUrl({
+    format: "jsonl",
+    fields: "meaning"
+});
+```
+
+## Lexidata API
 
 The npm package is a client for the public Lexidata REST API.
 
-You can also access the API directly without installing the package.
+API:
 
-### Word Lookup
+https://api.lexidata.dev
 
-```text
-GET https://api.lexidata.dev/api/v1/words/:word
-```
+Website:
 
-Example:
+https://lexidata.dev
 
-```text
-https://api.lexidata.dev/api/v1/words/communicate
-```
+Documentation:
 
-### Search
+https://lexidata.dev/docs
 
-```text
-GET https://api.lexidata.dev/api/v1/search
-```
+Dataset exports:
 
-Example:
+https://lexidata.dev/export
 
-```text
-https://api.lexidata.dev/api/v1/search?q=computer&match=exact
-```
+## Project
 
-### Random Words
-
-```text
-GET https://api.lexidata.dev/api/v1/random
-```
-
-Example:
-
-```text
-https://api.lexidata.dev/api/v1/random?limit=5
-```
-
-For complete API information and interactive usage, visit:
-
-**[Lexidata](https://lexidata.dev)**
-
----
-
-## Requirements
-
-- Node.js 18 or newer
-- Internet access to the Lexidata API
-
-The package has no runtime dependencies.
-
-It uses the built-in `fetch()` API available in modern Node.js versions.
-
----
-
-## About Lexidata
-
-Lexidata is an open lexical data project built around English lexical information derived from Princeton WordNet.
+Lexidata is an open lexical data project designed to make English lexical information easy to access, query, export, and integrate into applications.
 
 The project provides:
 
+- REST API
+- JavaScript client
+- Search
 - Word lookup
+- Random words
+- Dataset access
+- Dataset exports
 - Definitions
 - Examples
 - Pronunciations
-- Parts of speech
-- WordNet senses
-- Synset identifiers
-- Prefix search
-- Exact search
-- Contains search
-- Pagination
-- Random word generation
-- Part-of-speech filtering
-- Word-length filtering
-- Prefix, suffix, and contains filtering
+- Synsets
+- Semantic relations
 
-The Lexidata API is backed by PostgreSQL and is designed for applications involving dictionaries, NLP, education, word games, language tools, and other lexical-data use cases.
+## Development
 
----
+Clone the repository:
 
-## Links
+```bash
+git clone https://github.com/FahadNiz/lexidata-js.git
+cd lexidata-js
+```
 
-- Website: https://lexidata.dev
-- API: https://api.lexidata.dev
-- GitHub: https://github.com/FahadNiz/lexidata
-- npm: https://www.npmjs.com/package/lexidata
+Install dependencies:
 
----
+```bash
+npm install
+```
 
-## Data Attribution
+Run tests:
 
-Lexidata uses data derived from Princeton WordNet.
+```bash
+npm test
+```
 
-WordNet is developed by Princeton University.
+Create an npm package:
 
-WordNet 3.0:
+```bash
+npm pack
+```
 
-> Copyright 2006 by Princeton University. All rights reserved.
+Preview what will be published:
 
-For licensing and attribution information, see:
+```bash
+npm publish --dry-run
+```
 
-https://wordnet.princeton.edu/license-and-commercial-use
+## Repository
 
-For information about citing WordNet:
-
-https://wordnet.princeton.edu/citing-wordnet
-
-Lexidata does not claim ownership of the original WordNet database or its contents.
-
----
+https://github.com/FahadNiz/lexidata-js
 
 ## License
 
-The Lexidata JavaScript client is released under the MIT License.
+This package's source code is licensed under the MIT License.
 
-See [LICENSE](LICENSE) for the full license text.
+See the `LICENSE` file for the complete license text.
+
+Lexidata's underlying lexical data may contain data derived from external sources. Data licensing and attribution requirements may therefore differ from the software license.
+
+For applicable lexical-data attribution and licensing information, refer to the Lexidata project documentation.
+
+## Lexidata
+
+Words unlock worlds.

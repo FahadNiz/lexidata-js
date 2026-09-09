@@ -1,83 +1,80 @@
-const DEFAULT_BASE_URL = "https://api.lexidata.dev";
+const {
+    LexidataClient,
+    DEFAULT_BASE_URL
+} = require("./client");
 
-class LexidataClient {
-    constructor(options = {}) {
-        this.baseUrl = (options.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "");
-    }
+const {
+    LexidataError
+} = require("./errors");
 
-    async request(path) {
-        const response = await fetch(`${this.baseUrl}${path}`);
+const {
+    WordsResource
+} = require("./resources/words");
 
-        let data;
+const {
+    SearchResource
+} = require("./resources/search");
 
-        try {
-            data = await response.json();
-        } catch {
-            throw new Error(`Lexidata API returned invalid JSON (${response.status})`);
-        }
+const {
+    RandomResource
+} = require("./resources/random");
 
-        if (!response.ok) {
-            const message =
-                data?.error?.message ||
-                data?.message ||
-                `Lexidata API request failed (${response.status})`;
+const {
+    DatasetResource
+} = require("./resources/dataset");
 
-            const error = new Error(message);
-            error.status = response.status;
-            error.response = data;
+function createClient(options = {}) {
+    const client =
+        new LexidataClient(options);
 
-            throw error;
-        }
+    const words =
+        new WordsResource(client);
 
-        return data;
-    }
+    const search =
+        new SearchResource(client);
 
-    async word(word) {
-        if (!word || typeof word !== "string") {
-            throw new TypeError("word must be a non-empty string");
-        }
+    const random =
+        new RandomResource(client);
 
-        return this.request(
-            `/api/v1/words/${encodeURIComponent(word)}`
-        );
-    }
+    const dataset =
+        new DatasetResource(client);
 
-    async search(options = {}) {
-        const params = new URLSearchParams();
+    return {
+        word: word =>
+            words.get(word),
 
-        for (const [key, value] of Object.entries(options)) {
-            if (value !== undefined && value !== null) {
-                params.set(key, String(value));
-            }
-        }
+        search: options =>
+            search.search(options),
 
-        return this.request(
-            `/api/v1/search?${params.toString()}`
-        );
-    }
+        random: options =>
+            random.get(options),
 
-    async random(options = {}) {
-        const params = new URLSearchParams();
+        dataset: options =>
+            dataset.get(options),
 
-        for (const [key, value] of Object.entries(options)) {
-            if (value !== undefined && value !== null) {
-                params.set(key, String(value));
-            }
-        }
+        export: options =>
+            dataset.export(options),
 
-        const query = params.toString();
+        datasetUrl: options =>
+            dataset.url(options),
 
-        return this.request(
-            `/api/v1/random${query ? `?${query}` : ""}`
-        );
-    }
+        client
+    };
 }
 
-function createClient(options) {
-    return new LexidataClient(options);
-}
+const defaultClient =
+    createClient();
 
 module.exports = {
+    createClient,
     LexidataClient,
-    createClient
+    LexidataError,
+    DEFAULT_BASE_URL,
+
+    word: defaultClient.word,
+    search: defaultClient.search,
+    random: defaultClient.random,
+    dataset: defaultClient.dataset,
+    export: defaultClient.export,
+    datasetUrl: defaultClient.datasetUrl
 };
