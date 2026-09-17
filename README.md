@@ -1,6 +1,24 @@
 # Lexidata
 
-JavaScript client for the [Lexidata](https://lexidata.dev) open lexical data API.
+<p align="center">
+  <img
+    src="./assets/branding/Lexidata-logo-primary.svg"
+    alt="Lexidata"
+    width="560"
+  />
+</p>
+
+<p align="center">
+  JavaScript client for the <a href="https://lexidata.dev">Lexidata</a> open lexical data API.
+</p>
+
+<p align="center">
+  <a href="https://api.lexidata.dev">Production API</a>
+  ·
+  <a href="https://lexidata.dev">Website</a>
+  ·
+  <a href="https://github.com/FahadNiz/lexidata">GitHub</a>
+</p>
 
 Lexidata provides open lexical data for English words, including definitions, senses, examples, pronunciations, synsets, semantic relations, search, random words, and dataset exports.
 

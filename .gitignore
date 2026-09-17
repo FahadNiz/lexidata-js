@@ -1,1 +1,5 @@
+node_modules/
+coverage/
 lexidata-*.tgz
+.DS_Store
+*.log

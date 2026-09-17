@@ -23,8 +23,17 @@
   "engines": {
     "node": ">=18"
   },
+  "homepage": "https://lexidata.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FahadNiz/lexidata-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FahadNiz/lexidata-js/issues"
+  },
   "files": [
     "src",
+    "assets",
     "README.md",
     "LICENSE"
   ]
